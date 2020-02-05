@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         mediaSession = MediaSessionCompat(this,"media")
     }
 
-    fun send1() {
+    fun send1(view: View) {
         notificationManager?.let {
             if (!it.areNotificationsEnabled()){
                 openSettings()
