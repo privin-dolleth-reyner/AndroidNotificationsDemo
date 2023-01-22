@@ -26,7 +26,7 @@ class NotificationReceiver : BroadcastReceiver() {
 
     private fun handleMessage(context: Context?, intent: Intent) {
         val remoteBundle = RemoteInput.getResultsFromIntent(intent)
-        val replyText = remoteBundle.getCharSequence(MESSAGING)
+        val replyText = remoteBundle?.getCharSequence(MESSAGING)
         replyText?.let{
             NotificationFactory.MESSAGES.add(Message(it,null))
         }

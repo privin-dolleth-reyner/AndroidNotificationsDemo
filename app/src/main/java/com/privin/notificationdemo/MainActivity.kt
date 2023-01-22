@@ -1,9 +1,11 @@
 package com.privin.notificationdemo
 
+import android.Manifest
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
@@ -15,6 +17,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.RadioButton
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.graphics.drawable.IconCompat
@@ -28,7 +31,7 @@ import com.privin.notificationdemo.NotificationFactory.Companion.DOWNLOAD
 import com.privin.notificationdemo.NotificationFactory.Companion.INBOX
 import com.privin.notificationdemo.NotificationFactory.Companion.MEDIA
 import com.privin.notificationdemo.NotificationFactory.Companion.MESSAGING
-import kotlinx.android.synthetic.main.activity_main.*
+import com.privin.notificationdemo.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
@@ -46,6 +49,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                 .setType(MESSAGING)
                 .build()
 
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
             NotificationManagerCompat.from(context).notify(1,notification)
         }
     }
@@ -56,16 +73,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     private var mediaSession : MediaSessionCompat? = null
     private var channel = channels[0]
     private var id = 1
+    
+    private val binding: ActivityMainBinding by lazy { 
+        ActivityMainBinding.inflate(layoutInflater)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(binding.root)
         notificationManager = NotificationManagerCompat.from(this)
         val adapter = ArrayAdapter.createFromResource(this,R.array.list,android.R.layout.simple_list_item_1)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = adapter
-        spinner.onItemSelectedListener = this
-        radio_grp.setOnCheckedChangeListener{ rg, _ ->
+        binding.spinner.adapter = adapter
+        binding.spinner.onItemSelectedListener = this
+        binding.radioGrp.setOnCheckedChangeListener{ rg, _ ->
             val r = findViewById<RadioButton>(rg.checkedRadioButtonId)
             channel = if(r.text.contains("1")){
                 channels[0]
@@ -83,8 +104,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                 return
             }
         }
-        val title = if(notification_title.text.isNotEmpty()) notification_title.text.toString() else "Title"
-        val description = if(desc.text.isNotEmpty()) desc.text.toString() else "Description"
+        val title = if(binding.notificationTitle.text.isNotEmpty()) binding.notificationTitle.text.toString() else "Title"
+        val description = if(binding.desc.text.isNotEmpty()) binding.desc.text.toString() else "Description"
         val activityIntent = Intent(this,MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this,0,activityIntent,PendingIntent.FLAG_UPDATE_CURRENT)
         val actionIntent = Intent(this,NotificationReceiver::class.java)
@@ -106,6 +127,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         notification.flags = Notification.FLAG_AUTO_CANCEL
 
         if (notificationType== DOWNLOAD || notificationType== MESSAGING){
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
             notificationManager?.notify(1,notification)
             return
         }
@@ -132,10 +167,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         notificationType = types[position]
         when(notificationType){
             MEDIA -> {
-                if(notification_title.text.isEmpty())
-                    notification_title.setText(getString(R.string.dummy_song_name))
-                if (desc.text.isEmpty())
-                    desc.setText(getString(R.string.dummy_artist))
+                if(binding.notificationTitle.text.isEmpty())
+                    binding.notificationTitle.setText(getString(R.string.dummy_song_name))
+                if (binding.desc.text.isEmpty())
+                    binding.desc.setText(getString(R.string.dummy_artist))
             }
         }
     }
